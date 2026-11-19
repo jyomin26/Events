@@ -1,0 +1,57 @@
+
+[
+  {
+    "id": "kw-event-001",
+    "title": "Candlelight: The Best of Joe Hisaishi",
+    "location": "Centre In The Square, 101 Queen Street N, Kitchener",
+    "time": "2026-11-23T18:00:00",
+    "imageUrl": "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800",
+    "latitude": 43.45438,
+    "longitude": -80.48387
+  },
+  {
+    "id": "kw-event-002",
+    "title": "David Bowie Tribute Night",
+    "location": "Maxwell's Concerts & Events, 35 University Ave E, Waterloo",
+    "time": "2026-11-27T21:00:00",
+    "imageUrl": "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800",
+    "latitude": 43.4775,
+    "longitude": -80.5250
+  },
+  {
+    "id": "kw-event-003",
+    "title": "Kitchener Soul Music Night",
+    "location": "The Boathouse, 57 Jubilee Drive, Kitchener",
+    "time": "2026-11-25T19:00:00",
+    "imageUrl": "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800",
+    "latitude": 43.4479,
+    "longitude": -80.4970
+  },
+  {
+    "id": "kw-event-004",
+    "title": "Live Music & DJs Night",
+    "location": "The Union, 124 Sydney Street S, Kitchener",
+    "time": "2026-11-26T20:00:00",
+    "imageUrl": "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800",
+    "latitude": 43.4386,
+    "longitude": -80.4728
+  },
+  {
+    "id": "kw-event-005",
+    "title": "Gospel by Candlelight",
+    "location": "The Registry Theatre, 122 Frederick Street, Kitchener",
+    "time": "2026-11-29T18:30:00",
+    "imageUrl": "https://images.unsplash.com/photo-1507692049790-de58290a4334?w=800",
+    "latitude": 43.45194,
+    "longitude": -80.48563
+  },
+  {
+    "id": "kw-event-006",
+    "title": "Lemonade: Pop, R&B and Hip Hop Night",
+    "location": "Waterloo Public Square, 75 King Street S, Waterloo",
+    "time": "2026-11-26T20:00:00",
+    "imageUrl": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800",
+    "latitude": 43.46385,
+    "longitude": -80.52241
+  }
+]

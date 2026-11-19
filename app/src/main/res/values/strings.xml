@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Events</string>
+    <string name="retry">Retry</string>
+    <string name="distance_from_your_current_location_1f_km">Distance from your current location: %.1f km</string>
+    <string name="location_denied_message_for_distance">Distance can\'t be found from your current location because location permission was not provided.</string>
+    <string name="give_permission">Give Permission</string>
+    <string name="getting_your_current_location">Getting your current location…</string>
+    <string name="navigate_to_event">Navigate to event</string>
+    <string name="no_events_available">No events available.</string>
+    <string name="toggle_bookmark">Toggle bookmark</string>
+    <string name="retryj">Retry</string>
+    <string name="nearby_events">Nearby Events</string>
+    <string name="saved_events">Saved Events</string>
+    <string name="event_details">Event Details</string>
+    <string name="local_events_explorer">Local Events Explorer</string>
+    <string name="open_navigation_drawer">Open navigation drawer</string>
+    <string name="back">Back</string>
+</resources>
