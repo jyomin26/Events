@@ -1,343 +1,579 @@
-# Local Events Explorer
+# Events – Android Application
 
-A native Android application built with **Kotlin, Jetpack Compose, Clean Architecture, MVVM, Room, and Hilt**. The application allows users to explore nearby events, view event details, save their favourite events, and navigate to event locations using Google Maps.
+A native Android application that helps users discover nearby events, explore event details, bookmark their favourite events, and navigate to event locations.
+
+Built using **Kotlin, Jetpack Compose, MVVM, Clean Architecture, Room, Hilt, Coroutines, Flow, Coil, and WorkManager**.
+
+The project demonstrates modern Android development practices, modular architecture, local persistence, caching strategies, native location integration, background processing, and testable application design.
+
+Users can:
+
+- Browse available events.
+- View event information and images.
+- Explore individual event details.
+- Bookmark and unbookmark events.
+- Access bookmarked events independently of the event listing.
+- Request location permission.
+- View the distance between their current location and an event.
+- Open an event location in an external maps application.
+
+The application also incorporates local data persistence, image caching, TTL-based caching, background refresh scheduling, and graceful handling of data refresh failures.
+
+The application uses a bundled JSON file as its event data source and Room as its persistent local data store.
 
 ## Features
 
-### 1. Nearby Events
-- Browse a list of available events.
-- View event images, titles, locations, and date/time information.
-- Open an event to see its detailed information.
-- Display event information in a card-based UI.
+### 1. Event Discovery
 
-### 2. Saved Events
-- Bookmark events to save them for later.
-- Remove bookmarks by tapping the favourite icon again.
-- View all bookmarked events in a dedicated Saved Events screen.
-- Persist bookmark status locally using Room.
+- Display a list of available events.
+- Load event information from a local JSON data source.
+- Display event images using Coil.
+- Navigate from the event list to individual event details.
+- Observe event data reactively using Kotlin Flow.
 
-### 3. Event Details
-- View event images and complete event information.
-- Display formatted event dates and times.
-- Request location permission when opening the event details screen.
-- Calculate the distance between the user's current location and the event location.
-- Handle location permission denial and provide an option to grant permission through app settings.
-- Open the event location in an external Maps application.
+### 2. Event Details
 
-### 4. Offline Support
-- Store event information locally using Room Database.
-- Load initial event data from a bundled JSON asset.
-- Display locally stored events without requiring a network connection.
-- Preserve existing bookmark status when refreshing event data.
+- Display detailed event information.
+- Show event images and relevant information.
+- Request runtime location permission.
+- Calculate the distance between the user's current location and the event.
+- Launch an external maps application for navigation.
 
-### 5. UI State Management
-The application uses a reusable sealed UI state to handle different screen states:
+### 3. Bookmark Management
 
-- **Loading:** Displays a progress indicator while data is being loaded.
-- **Success:** Displays the requested event information.
-- **Error:** Displays an error message and retry option.
-- **Empty:** Displays an appropriate message when no events are available.
+- Bookmark and unbookmark events.
+- Persist bookmark information using Room.
+- Maintain bookmark state when refreshing event data.
+- Display bookmarked events separately.
+- Preserve bookmarked events across application restarts.
+
+### 4. Offline Data Persistence
+
+- Persist downloaded or loaded events in Room.
+- Use Room as the primary source of truth for UI data.
+- Observe database changes through Kotlin Flow.
+- Retain previously stored events when a refresh fails.
+- Support displaying previously cached event information.
+
+### 5. Image Caching
+
+Implemented image caching using Coil.
+
+Caching capabilities include:
+
+- In-memory image caching.
+- Disk-based image caching.
+- Reuse of previously loaded images.
+- Reduced unnecessary image downloads.
+
+### 6. TTL-Based Event Caching
+
+Implemented a persistent cache expiration mechanism using Room.
+
+- Cache metadata is stored separately from event records.
+- The last successful fetch timestamp is persisted.
+- Cache expiration is checked before refreshing events.
+- Fresh cached data is reused without unnecessary refreshes.
+- Expired data triggers a refresh.
+- Cache metadata is updated only after a successful database update.
+
+**Configured TTL: 15 minutes.**
+
+### 7. Background Refresh
+
+Implemented periodic background refresh scheduling using Android WorkManager.
+
+- Periodic refresh scheduling.
+- Low-frequency refresh interval of 6 hours.
+- Unique periodic work to prevent duplicate scheduling.
+- Network connectivity constraints.
+- Background execution independent of the currently visible screen.
+
+### 8. Loading and Error States
+
+The application handles different UI states, including:
+
+- Loading.
+- Success.
+- Empty results.
+- Error conditions.
+
+Previously cached events remain available when a refresh fails instead of unnecessarily replacing existing content with an empty list.
 
 ## Technology Stack
 
-| Category | Technologies |
+| Category | Technology |
 |---|---|
 | Language | Kotlin |
+| Platform | Native Android |
 | UI | Jetpack Compose |
-| Design System | Material 3 |
-| Architecture | Clean Architecture, MVVM |
+| Architecture | Clean Architecture + MVVM |
 | Dependency Injection | Hilt |
 | Local Database | Room |
-| Asynchronous Programming | Kotlin Coroutines, Flow, StateFlow |
+| Asynchronous Programming | Kotlin Coroutines |
+| Reactive Data | Kotlin Flow |
+| Image Loading and Caching | Coil |
+| Background Processing | WorkManager |
 | Navigation | Navigation Compose |
-| Image Loading | Coil |
-| Location | Google Play Services Location |
-| Testing | JUnit, AndroidX Test, Room Testing, Coroutines Test |
+| Location | Android Location APIs |
+| Maps Integration | Android Maps Intent / Deep Linking |
+| Data Source | Local JSON |
+| Unit Testing | JUnit, Fake Data Sources, In-Memory Room |
 
-## Architecture
 
-The project follows Clean Architecture with separate Gradle modules for the application, domain, and data layers.
+## Application Architecture
 
-```text
-LocalEventsExplorer/
-│
-├── app/
-│   └── src/main/java/com/android/events/
-│       ├── details/
-│       ├── events/
-│       ├── navigation/
-│       ├── ui/
-│       │   └── state/
-│       ├── utils/
-│       └── MainActivity.kt
-│
-├── domain/
-│   └── src/main/java/com/android/events/domain/
-│       ├── model/
-│       ├── repository/
-│       └── usecase/
-│
-└── data/
-    └── src/main/
-        ├── assets/
-        │   └── events.json
-        └── java/com/android/events/data/
-            ├── di/
-            ├── local/
-            │   ├── dao/
-            │   ├── database/
-            │   └── entity/
-            ├── location/
-            ├── mapper/
-            ├── remote/
-            │   └── datasource/
-            └── repository/
-```
+The application follows **Clean Architecture with MVVM**, organized into three Gradle modules.
 
-### Presentation Layer (app)
+### 1. App Module
 
-Responsible for the user interface and presentation logic.
+Responsible for application presentation and Android-specific functionality.
+
+Responsibilities:
 
 - Jetpack Compose screens.
-- ViewModels for managing UI state.
-- Navigation between Nearby Events, Saved Events, and Event Details.
-- Reusable `UiState` for Loading, Success, and Error handling.
+- ViewModels.
+- Navigation.
+- UI state management.
+- Location permission handling.
+- Maps integration.
+- WorkManager configuration and background scheduling.
+- Application initialization.
 
-### Domain Layer (domain)
+### 2. Domain Module
 
-Contains the application's core business logic and is independent of Android framework and data-source implementations.
+Contains the application's business logic and core contracts.
 
-**Models**
-- `Event`
-- `UserLocation`
+Responsibilities:
 
-**Repository Contracts**
-- `EventRepository`
-- `LocationRepository`
+- Domain models.
+- Repository interfaces.
+- Use cases.
+- Business rules.
+- Abstraction of data operations.
 
-**Use Cases**
-- `GetEventsUseCase`
-- `GetBookmarkedEventsUseCase`
-- `GetEventByIdUseCase`
-- `ToggleBookmarkUseCase`
-- `RefreshEventsUseCase`
-- `GetCurrentLocationUseCase`
+The domain layer does not depend on Android framework or data-layer implementation details.
 
-### Data Layer (data)
+### 3. Data Module
 
-Responsible for providing and managing application data.
+Responsible for retrieving, storing, and transforming application data.
 
-- Room Database for local persistence.
-- DAO interfaces for database operations.
-- Entity-to-domain and domain-to-entity mapping.
-- Local JSON data source for initial event data.
+Responsibilities:
+
+- Local JSON data source.
+- Room database.
+- DAOs.
+- Database entities.
+- Data-to-domain mapping.
 - Repository implementations.
-- Location data source using Google Play Services Location.
-- Hilt modules for dependency injection.
+- Cache metadata management.
+- Transactional database operations.
 
-## Data Flow
+The repository implementation coordinates data operations between the data sources and the domain layer.
 
-The application follows a unidirectional data flow between the UI, ViewModel, domain, and data layers.
+## Architectural Principles
 
-```text
-Compose UI
-    |
-    v
-ViewModel
-    |
-    v
-Use Case
-    |
-    v
-Repository Interface
-    |
-    v
-Repository Implementation
-    |
-    +------------------+
-    |                  |
-    v                  v
-Room Database      JSON Data Source
-    |
-    v
-Domain Model
-    |
-    v
-StateFlow / UiState
-    |
-    v
-Compose UI
-```
+- Separation of concerns.
+- Dependency inversion.
+- Repository pattern.
+- Single source of truth using Room.
+- Unidirectional data flow.
+- Reactive UI updates using Flow.
+- Business logic isolated in the domain layer.
+- Testable components through dependency abstraction.
 
-For location-related functionality:
+## Project Structure
+
+The project is organized into three main Gradle modules:
 
 ```text
-Event Detail Screen
-        |
-        v
-Location Permission
-        |
-        v
-EventDetailViewModel
-        |
-        v
-GetCurrentLocationUseCase
-        |
-        v
-LocationRepository
-        |
-        v
-LocationDataSource
-        |
-        v
-Google Play Services Location
+Events/
+│
+├── app/
+│   └── src/main/
+│       ├── java/com/android/events/
+│       │   ├── navigation/
+│       │   ├── events/
+│       │   ├── details/
+│       │   ├── bookmarks/
+│       │   ├── di/
+│       │   └── EventsApplication.kt
+│       │
+│       ├── assets/
+│       │   └── events.json
+│       │
+│       └── AndroidManifest.xml
+│
+├── domain/
+│   └── src/main/java/
+│       └── com/android/events/domain/
+│           ├── model/
+│           ├── repository/
+│           └── usecase/
+│
+├── data/
+│   └── src/main/java/
+│       └── com/android/events/data/
+│           ├── local/
+│           │   ├── dao/
+│           │   ├── database/
+│           │   └── entity/
+│           │
+│           ├── remote/
+│           │   └── datasource/
+│           │
+│           ├── mapper/
+│           └── repository/
+│
+├── gradle/
+├── build.gradle.kts
+├── settings.gradle.kts
+└── README.md
 ```
 
-## Database Design
 
-The application uses Room with an `EventEntity` table.
+## Application Flow
 
-| Field | Type | Description |
-|---|---|---|
-| id | String | Unique event identifier |
-| title | String | Event title |
-| location | String | Event location |
-| time | String | Event date and time |
-| imageUrl | String | Event image URL |
-| latitude | Double | Event latitude |
-| longitude | Double | Event longitude |
-| isBookmarked | Boolean | Bookmark status |
+### Event Listing Flow
 
-### Bookmark Persistence
+1. The UI requests events through its ViewModel.
+2. The ViewModel invokes the appropriate domain use case.
+3. The use case communicates with the EventRepository interface.
+4. The repository observes events from Room.
+5. Room emits changes through Flow.
+6. The ViewModel updates the UI state.
+7. Jetpack Compose renders the latest events.
 
-Bookmark status is stored in the database.
+### Event Detail Flow
 
-When an event is bookmarked, its `isBookmarked` value is updated. The Saved Events screen observes bookmarked events through a Room Flow.
+1. The user selects an event.
+2. Navigation passes the event identifier.
+3. The detail ViewModel requests the event through a use case.
+4. The repository retrieves the event from Room.
+5. The event is mapped into its domain model.
+6. The UI displays the event details.
 
-### Refresh Strategy
+### Bookmark Flow
 
-When event data is refreshed:
+1. The user selects the bookmark action.
+2. The ViewModel invokes the bookmark use case.
+3. The repository updates the bookmark state through EventDao.
+4. Room persists the change.
+5. Observed Flow data updates the UI.
 
-1. Existing database events are retrieved.
-2. Existing bookmark statuses are indexed by event ID.
-3. Updated event information is mapped to database entities.
-4. Existing bookmark statuses are preserved for matching event IDs.
-5. Existing records are replaced inside a Room transaction.
+## Local Database and Persistence
 
-This ensures that refreshing event information does not unintentionally remove saved events.
+Room is used for persistent storage.
 
-## Location and Navigation
+### Event Storage
 
-The application uses Google Play Services Location to retrieve the user's current location.
+Event information is stored in the local database through:
 
-- Requests fine and coarse location permissions at runtime.
-- Supports approximate location when precise location is unavailable.
-- Calculates the distance between the current location and an event using geographic coordinates.
-- Uses an Android geo URI to launch an external Maps application.
+- EventEntity.
+- EventDao.
+- EventsDatabase.
 
-Location access is optional. Users can still browse events without granting location permission.
+The DAO supports operations such as:
 
-## UI State Management
+- Observing all events.
+- Retrieving an event by ID.
+- Retrieving bookmarked events.
+- Inserting events.
+- Deleting event records.
+- Updating bookmark status.
 
-A generic sealed interface is used to represent screen states:
+### Cache Metadata Storage
+
+A separate metadata table tracks cache freshness.
+
+Cache metadata includes:
+
+| Field | Description |
+|---|---|
+| cacheKey | Identifies the cached dataset |
+| lastFetchedAt | Timestamp of the last successful refresh |
+
+This separation allows cache expiration to be managed independently of individual event records.
+
+### Transaction Management
+
+Room transactions are used to ensure related database updates are performed atomically.
+
+During an event refresh:
+
+1. Existing bookmark states are retrieved.
+2. New event entities are mapped.
+3. Existing bookmark states are preserved.
+4. Event records are updated.
+5. Cache metadata is updated.
+
+If the transaction fails, Room rolls back the changes.
+
+## Caching Strategy
+
+The application implements two caching mechanisms.
+
+### 1. Image Caching – Coil
+
+Coil provides:
+
+- Memory cache.
+- Disk cache.
+- Image reuse.
+- Efficient image loading in Compose.
+
+### 2. Event Data Caching – Room + TTL
+
+The application uses a 15-minute TTL.
 
 ```kotlin
-sealed interface UiState<out T> {
-    data object Loading : UiState<Nothing>
+private const val EVENTS_CACHE_KEY = "events"
+private const val CACHE_TTL = 15 * 60 * 1000L
+```
 
-    data class Success<T>(
-        val data: T
-    ) : UiState<T>
+Cache expiration is determined using the last successful fetch timestamp.
 
-    data class Error(
-        val message: String
-    ) : UiState<Nothing>
+```kotlin
+private suspend fun isCacheExpired(): Boolean {
+    val metadata = cacheMetadataDao.getMetadata(
+        EVENTS_CACHE_KEY
+    ) ?: return true
+
+    val currentTime = System.currentTimeMillis()
+
+    return currentTime - metadata.lastFetchedAt > CACHE_TTL
 }
 ```
 
-This approach provides predictable state handling and separates UI rendering from business logic.
+### Cache Behaviour
+
+| Scenario | Expected Behaviour |
+|---|---|
+| First application launch | Load events and persist them |
+| Cache younger than 15 minutes | Reuse cached events |
+| Cache older than 15 minutes | Refresh events |
+| Refresh successful | Update Room and cache timestamp |
+| Refresh unsuccessful | Retain existing cached data |
+| Application restarted | Read persisted events and metadata |
+
+**Note:** The current implementation uses a bundled JSON data source. The TTL mechanism demonstrates persistent cache expiration and refresh behaviour; it is not a live REST response cache.
+
+## Background Refresh
+
+Android WorkManager is used to schedule periodic event refresh operations.
+
+### Configuration
+
+- Refresh interval: 6 hours.
+- Network connectivity constraint.
+- Unique periodic work.
+- Background execution.
+- Coroutine-based worker implementation.
+- Error and retry handling according to the worker result.
+
+WorkManager is suitable for deferrable background operations and can persist scheduled work across application restarts and device reboots.
+
+The background refresh reuses the repository's cache validation logic rather than maintaining a separate TTL implementation.
+
+## Location and Maps Integration
+
+The application uses native Android location capabilities.
+
+### Location Permission
+
+- Requests runtime location permission.
+- Handles permission approval and denial.
+- Retrieves the user's current location when permission is available.
+
+### Distance Calculation
+
+The application calculates the distance between the user's current location and the selected event location.
+
+This provides users with additional context when deciding which events to attend.
+
+### Maps Navigation
+
+The application supports launching an external maps application through an Android intent.
+
+Users can open the selected event location for navigation without requiring an embedded maps interface.
+
+## Error Handling
+
+The application uses explicit UI states to represent different screen conditions.
+
+Typical states include:
+
+- Loading.
+- Success.
+- Empty.
+- Error.
+
+The application is designed to preserve existing Room data when a refresh operation fails.
+
+Important behaviours:
+
+- Avoid replacing cached events with empty results after a failed refresh.
+- Preserve previously saved bookmarks.
+- Update cache timestamps only after successful refresh operations.
+- Keep UI rendering independent of data-source implementation details.
+- Handle location permission denial gracefully.
 
 ## Dependency Injection
 
 Hilt is used for dependency injection.
 
-- Repository implementations are bound to domain repository interfaces.
-- Room database and DAO dependencies are provided through Hilt modules.
-- ViewModels receive use cases through constructor injection.
-- Application-scoped dependencies are managed through Hilt components.
+It provides dependencies for:
+
+- Room database.
+- Event DAO.
+- Cache metadata DAO.
+- Repository implementation.
+- Use cases.
+- ViewModels.
+- Background worker dependencies.
+
+Constructor injection is preferred wherever possible.
+
+This reduces manual object creation and improves testability.
+
+## Testing
+
+The project uses JUnit and test doubles to validate core application logic.
+
+The repository implementation can be tested using:
+
+- Fake local event data source.
+- In-memory Room database.
+- Actual repository implementation.
+- Controlled test event data.
+
+Core test scenarios include:
+
+1. **Event Refresh:** Verify that events are loaded and persisted in Room.
+2. **Bookmark Preservation:** Verify that existing bookmark states are retained when events are refreshed.
+3. **Bookmark Management:** Verify that toggling bookmark state updates the persisted event record.
+
+The project also supports extending coverage to cache expiration, repository error handling, and ViewModel UI states.
+
+Run the unit tests using:
+
+```bash
+./gradlew test
+```
+
+---
+
+## Engineering Standards
+
+The following engineering practices are followed throughout the application.
+
+### Architecture and Code Organization
+
+- Multi-module Gradle architecture.
+- Clean Architecture.
+- MVVM presentation pattern.
+- Repository pattern.
+- Separation of business logic and framework-specific code.
+- Dependency inversion.
+
+### Kotlin Best Practices
+
+- Kotlin Coroutines for asynchronous operations.
+- Flow for reactive data streams.
+- Constructor-based dependency injection.
+- Immutable data models where appropriate.
+- Null-safe implementation.
+- Meaningful naming conventions.
+
+### Database Standards
+
+- Room for structured local persistence.
+- DAO abstraction.
+- Transactional database updates.
+- Explicit cache metadata.
+- Preservation of bookmark state.
+
+### UI Standards
+
+- Jetpack Compose.
+- ViewModel-driven UI state.
+- Loading, success, empty, and error states.
+- Reactive UI updates.
+- Separation of UI and business logic.
+
+### Maintainability and Testability
+
+- Modular responsibilities.
+- Reusable use cases.
+- Testable repository abstractions.
+- Fake data sources for unit testing.
+- Centralized dependency management.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Android Studio
-- Android SDK
-- JDK compatible with the project's Gradle configuration
-- Android device or emulator
-- Location services enabled for testing location-based features
+- Android Studio.
+- Android SDK.
+- JDK compatible with the project's Gradle configuration.
+- Android emulator or physical Android device.
 
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/jyomin26/Events
+git clone https://github.com/jyomin26/Events.git
 ```
 
-### Open the Project
-
-1. Open the project in Android Studio.
-2. Allow Gradle to sync.
-3. Build the project.
-4. Run the `app` configuration on an emulator or Android device.
-
-### Permissions
-
-The application requires the following location permissions:
-
-```xml
-<uses-permission
-    android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-<uses-permission
-    android:name="android.permission.ACCESS_COARSE_LOCATION" />
-```
-
-Location permission is requested at runtime when accessing event details.
-
-## Testing
-
-The project includes a testing approach for validating core application logic.
-
-### Repository Tests
-
-Repository tests use an in-memory Room database to verify database and repository behavior.
-
-Key test scenarios include:
-
-- Retrieving all events.
-- Retrieving bookmarked events.
-- Retrieving an event by ID.
-- Handling events that do not exist.
-- Toggling bookmark status.
-- Refreshing event data while preserving existing bookmarks.
-
-### Running Instrumentation Tests
+Navigate to the project:
 
 ```bash
-./gradlew :data:connectedDebugAndroidTest
+cd Events
 ```
 
-Run the tests on an emulator or connected Android device.
+### Open in Android Studio
 
-## Design Principles
+1. Open Android Studio.
+2. Select Open Project.
+3. Choose the cloned Events directory.
+4. Allow Gradle synchronization to complete.
+5. Run the application using an emulator or physical device.
 
-The application follows these principles:
+### Build the Application
 
-- Separation of concerns through Clean Architecture.
-- Single responsibility for individual components.
-- Dependency inversion through repository interfaces.
-- Constructor injection using Hilt.
-- Reactive data observation using Kotlin Flow.
-- Lifecycle-aware state management.
-- Transactional database updates.
-- Reusable UI state handling.
-- Testable business logic.
+```bash
+./gradlew build
+```
+
+### Run Unit Tests
+
+```bash
+./gradlew test
+```
+
+---
+
+## Repository
+
+**GitHub:** https://github.com/jyomin26/Events
+
+---
+
+## Summary
+
+The Events application demonstrates practical implementation of modern native Android development concepts, including:
+
+- Kotlin and Jetpack Compose.
+- Multi-module Clean Architecture.
+- MVVM and Repository patterns.
+- Hilt dependency injection.
+- Room database and persistent bookmarks.
+- Reactive programming using Coroutines and Flow.
+- Image caching using Coil.
+- TTL-based local data caching.
+- Periodic background processing using WorkManager.
+- Native Android location permissions.
+- Distance calculation and Maps navigation.
+- Structured UI state and error handling.
+- Unit testing and maintainable code organization.
+
+The primary focus of this project is to demonstrate clean architecture, separation of concerns, reliable local persistence, efficient resource usage, and practical Android platform integration.
