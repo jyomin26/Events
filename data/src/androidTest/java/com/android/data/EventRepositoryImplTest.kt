@@ -7,7 +7,6 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.android.events.data.local.database.EventsDatabase
 import com.android.events.data.local.entity.EventEntity
-import com.android.events.data.remote.datasource.LocalEventDataSource
 import com.android.events.data.repository.EventRepositoryImpl
 import com.android.events.domain.model.Event
 import kotlinx.coroutines.flow.first
@@ -21,8 +20,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 
 @RunWith(AndroidJUnit4::class)
 class EventRepositoryImplTest {
@@ -30,6 +27,7 @@ class EventRepositoryImplTest {
     private lateinit var database: EventsDatabase
     private lateinit var repository: EventRepositoryImpl
     private lateinit var localEventDataSource: FakeLocalEventDataSource
+    private lateinit var cacheMetadataDao: FakeCacheMetadataDao
 
     private val eventDao
         get() = database.eventDao()
@@ -46,11 +44,13 @@ class EventRepositoryImplTest {
             .build()
 
         localEventDataSource = FakeLocalEventDataSource(context)
+        cacheMetadataDao = FakeCacheMetadataDao()
 
         repository = EventRepositoryImpl(
             eventDao = database.eventDao(),
             database = database,
-            localEventDataSource = localEventDataSource
+            localEventDataSource = localEventDataSource,
+            cacheMetadataDao = cacheMetadataDao
         )
     }
 
