@@ -560,7 +560,7 @@ cd Events
 
 ## Summary
 
-The Events application demonstrates practical implementation of modern native Android development concepts, including:
+The Events application demonstrates practical implementation of modern native Android development concepts with separation of concerns, reliable local persistence, efficient resource usage including:
 
 - Kotlin and Jetpack Compose.
 - Multi-module Clean Architecture.
@@ -576,4 +576,3 @@ The Events application demonstrates practical implementation of modern native An
 - Structured UI state and error handling.
 - Unit testing and maintainable code organization.
 
-The primary focus of this project is to demonstrate clean architecture, separation of concerns, reliable local persistence, efficient resource usage, and practical Android platform integration.
