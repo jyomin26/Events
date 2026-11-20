@@ -3,6 +3,7 @@ package com.android.events.data.di
 
 import android.content.Context
 import androidx.room.Room
+import com.android.events.data.local.dao.CacheMetadataDao
 import com.android.events.data.local.dao.EventDao
 import com.android.events.data.local.database.EventsDatabase
 import com.android.events.data.remote.datasource.LocalEventDataSource
@@ -42,5 +43,12 @@ object DatabaseModule {
         @ApplicationContext context: Context
     ): LocalEventDataSource {
         return LocalEventDataSource(context)
+    }
+
+    @Provides
+    fun provideCacheMetadataDao(
+        database: EventsDatabase
+    ): CacheMetadataDao {
+        return database.cacheMetadataDao()
     }
 }

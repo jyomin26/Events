@@ -57,6 +57,7 @@ dependencies {
     // Hilt core dependencies
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.androidx.work.runtime.ktx)
     ksp(libs.hilt.compiler)
     // Room components
     implementation(libs.room.runtime)
